@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sthanam Interior — Project Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Mono:wght@300;400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f5f5f0; --surface:#eeeee8; --card:#ffffff; --border:#e0ddd8;
+    --gold:#9a6f2a; --gold-dim:#b8922f; --text:#1a1a1a; --muted:#888580;
+    --pmc:#2276a8; --turnkey:#b85a28; --idc:#2a8c3a; --arch:#7040a8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden;}
+  body::before{display:none;}
+  .wrapper{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:32px 24px;}
+
+  header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:28px;border-bottom:1px solid var(--border);}
+  .brand-name{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;letter-spacing:0.12em;color:var(--gold);line-height:1;}
+  .brand-sub{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.25em;color:var(--muted);text-transform:uppercase;margin-top:4px;}
+  .header-meta{text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end;}
+  .date-label{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.15em;}
+  .live-dot{display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--idc);font-family:'DM Mono',monospace;letter-spacing:0.1em;}
+  .live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--idc);animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+
+  .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:32px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;position:relative;overflow:hidden;transition:border-color 0.2s;}
+  .stat-card:hover{border-color:var(--gold-dim);box-shadow:0 2px 12px rgba(0,0,0,0.08);}
+  .stat-card::after{content:'';position:absolute;bottom:0;left:0;height:2px;width:100%;}
+  .s-total::after{background:var(--gold);}
+  .s-pmc::after{background:var(--pmc);}
+  .s-turnkey::after{background:var(--turnkey);}
+  .s-idc::after{background:var(--idc);}
+  .s-arch::after{background:var(--arch);}
+  .stat-label{font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-family:'DM Mono',monospace;}
+  .stat-number{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;line-height:1;}
+  .s-total .stat-number{color:var(--gold);}
+  .s-pmc .stat-number{color:var(--pmc);}
+  .s-turnkey .stat-number{color:var(--turnkey);}
+  .s-idc .stat-number{color:var(--idc);}
+  .s-arch .stat-number{color:var(--arch);}
+  .stat-sub{font-size:0.7rem;color:var(--muted);margin-top:4px;}
+
+  .section-title{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+  .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+  .filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+  .filter-btn{padding:6px 16px;border-radius:100px;font-size:0.75rem;letter-spacing:0.08em;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all 0.18s;font-family:'Outfit',sans-serif;}
+  .filter-btn:hover,.filter-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(154,111,42,0.07);font-weight:500;}
+  .refresh-btn{margin-left:auto;padding:6px 14px;border-radius:100px;font-size:0.72rem;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all 0.18s;font-family:'DM Mono',monospace;letter-spacing:0.1em;display:flex;align-items:center;gap:6px;}
+  .refresh-btn:hover{border-color:var(--gold-dim);color:var(--gold);}
+  .refresh-btn.spinning svg{animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .sheet-banner{background:rgba(154,111,42,0.06);border:1px solid rgba(154,111,42,0.2);border-radius:10px;padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;gap:12px;font-size:0.78rem;color:var(--muted);flex-wrap:wrap;}
+  .sheet-banner a{color:var(--gold);text-decoration:none;font-family:'DM Mono',monospace;font-size:0.7rem;}
+  .sheet-banner a:hover{text-decoration:underline;}
+  .last-sync{margin-left:auto;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;color:var(--muted);}
+
+  .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  thead th{padding:14px 18px;text-align:left;font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);background:var(--surface);font-weight:400;border-bottom:1px solid var(--border);}
+  tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;cursor:pointer;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:rgba(0,0,0,0.025);}
+  tbody td{padding:16px 18px;font-size:0.82rem;vertical-align:middle;}
+
+  .project-name{font-weight:500;color:var(--text);font-size:0.88rem;}
+  .project-client{font-size:0.72rem;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
+  .type-badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:0.65rem;font-family:'DM Mono',monospace;letter-spacing:0.1em;white-space:nowrap;}
+  .badge-pmc{background:rgba(34,118,168,0.1);color:var(--pmc);border:1px solid rgba(34,118,168,0.3);}
+  .badge-turnkey{background:rgba(184,90,40,0.1);color:var(--turnkey);border:1px solid rgba(184,90,40,0.3);}
+  .badge-idc{background:rgba(42,140,58,0.1);color:var(--idc);border:1px solid rgba(42,140,58,0.3);}
+  .badge-arch{background:rgba(112,64,168,0.1);color:var(--arch);border:1px solid rgba(112,64,168,0.3);}
+
+  .progress-wrap{display:flex;align-items:center;gap:10px;}
+  .progress-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;min-width:80px;}
+  .progress-fill{height:100%;border-radius:2px;}
+  .progress-label{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);min-width:28px;text-align:right;}
+
+  .status-dot{display:flex;align-items:center;gap:7px;font-size:0.75rem;}
+  .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .dot-active{background:var(--idc);}
+  .dot-hold{background:var(--gold);}
+  .dot-review{background:var(--pmc);}
+  .dot-delayed{background:#c94c4c;}
+
+  .action-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:0.7rem;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;}
+  .action-btn:hover{border-color:var(--gold-dim);color:var(--gold);}
+
+  .state-box{padding:60px 20px;text-align:center;color:var(--muted);}
+  .state-box .icon{font-size:2rem;margin-bottom:12px;}
+  .state-box p{font-size:0.8rem;font-family:'DM Mono',monospace;letter-spacing:0.1em;}
+  .state-box .sub{font-size:0.7rem;margin-top:6px;opacity:0.6;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;padding:28px;position:relative;animation:slideUp 0.22s ease;}
+  @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .modal-close{position:absolute;top:16px;right:18px;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;transition:color 0.15s;}
+  .modal-close:hover{color:var(--text);}
+  .modal-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:400;color:var(--text);margin:6px 0 4px;}
+  .modal-client{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);margin-bottom:24px;}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+  .modal-field{display:flex;flex-direction:column;gap:4px;}
+  .field-label{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);}
+  .field-value{font-size:0.85rem;color:var(--text);font-weight:500;}
+  .modal-notes{background:#f8f7f4;border:1px solid var(--border);border-radius:8px;padding:14px;font-size:0.8rem;color:var(--muted);line-height:1.6;margin-top:16px;}
+  .modal-progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px;}
+  .modal-progress-fill{height:100%;border-radius:3px;}
+
+  .team-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);font-size:0.8rem;}
+  .team-row:last-child{border-bottom:none;}
+  .team-name{font-weight:500;}
+  .team-role{color:var(--muted);font-size:0.72rem;font-family:'DM Mono',monospace;}
+  .bottom-bar{margin-top:28px;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);letter-spacing:0.12em;flex-wrap:wrap;gap:8px;}
+
+  @media(max-width:768px){
+    .stats-grid{grid-template-columns:repeat(3,1fr);}
+    table thead th:nth-child(4),table thead th:nth-child(5),table tbody td:nth-child(4),table tbody td:nth-child(5){display:none;}
+    .brand-name{font-size:1.6rem;}
+  }
+  @media(max-width:480px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="brand">
+      <div class="brand-name">STHANAM</div>
+      <div class="brand-sub">Interior · Project Dashboard</div>
+    </div>
+    <div class="header-meta">
+      <div class="date-label" id="dateLabel">—</div>
+      <div class="live-dot" id="siteCountDot">LOADING...</div>
+    </div>
+  </header>
+
+  <!-- Sheet banner -->
+  <div class="sheet-banner">
+    <span style="font-size:1.1rem;">📊</span>
+    <span>Connected to your <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vSuGFPcRMzeIASq3taTqm-1MimiR0T2NQQdo55pz8OuUqYIIVA0x35ndI4792mBIt7hqbBEMwpoJ1EC/pubhtml?gid=0&single=true" target="_blank">Google Sheet ↗</a> &nbsp;·&nbsp; Update the sheet, then click Refresh</span>
+    <span class="last-sync" id="lastSync">NOT SYNCED YET</span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card s-total"><div class="stat-label">Total Sites</div><div class="stat-number" id="cTotal">—</div><div class="stat-sub">Active projects</div></div>
+    <div class="stat-card s-pmc"><div class="stat-label">PMC</div><div class="stat-number" id="cPmc">—</div><div class="stat-sub">Project mgmt</div></div>
+    <div class="stat-card s-turnkey"><div class="stat-label">Turnkey</div><div class="stat-number" id="cTurnkey">—</div><div class="stat-sub">Interior solutions</div></div>
+    <div class="stat-card s-idc"><div class="stat-label">IDC</div><div class="stat-number" id="cIdc">—</div><div class="stat-sub">Design consultancy</div></div>
+    <div class="stat-card s-arch"><div class="stat-label">Arch</div><div class="stat-number" id="cArch">—</div><div class="stat-sub">Architectural</div></div>
+  </div>
+
+  <div class="section-title">All Projects</div>
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterProjects('all',this)">All</button>
+    <button class="filter-btn" onclick="filterProjects('pmc',this)">PMC</button>
+    <button class="filter-btn" onclick="filterProjects('turnkey',this)">Turnkey</button>
+    <button class="filter-btn" onclick="filterProjects('idc',this)">IDC</button>
+    <button class="filter-btn" onclick="filterProjects('arch',this)">Arch</button>
+    <button class="filter-btn" onclick="filterProjects('active',this)">🟢 On Track</button>
+    <button class="filter-btn" onclick="filterProjects('delayed',this)">🔴 Delayed</button>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      REFRESH
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Project / Client</th><th>Type</th><th>Progress</th><th>Status</th><th>Next Action</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="projectTable">
+        <tr><td colspan="6"><div class="state-box"><div class="icon">⏳</div><p>LOADING FROM GOOGLE SHEET</p><div class="sub">fetching your projects...</div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:32px;">
+    <div class="section-title">Team Allocation</div>
+    <div class="table-wrap" style="padding:4px 0;">
+      <div class="team-row"><div><div class="team-name">You (Partner / Principal)</div><div class="team-role">Overall direction · Client relations · Business dev</div></div><span class="type-badge badge-arch">Principal</span></div>
+      <div class="team-row"><div><div class="team-name">Brother (Partner)</div><div class="team-role">Co-management · Design oversight</div></div><span class="type-badge badge-arch">Partner</span></div>
+      <div class="team-row"><div><div class="team-name">Site Executive</div><div class="team-role">PMC site supervision · On-site reporting</div></div><span class="type-badge badge-pmc">PMC Sites</span></div>
+      <div class="team-row"><div><div class="team-name">Office Member 1</div><div class="team-role">Documentation · Client coordination</div></div><span class="type-badge badge-idc">Office</span></div>
+      <div class="team-row" style="border-bottom:none;"><div><div class="team-name">Office Member 2</div><div class="team-role">Design support · Vendor follow-ups</div></div><span class="type-badge badge-idc">Office</span></div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <span>STHANAM INTERIOR · INTERNAL USE</span>
+    <span id="bottomDate">—</span>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    <div id="mType"></div>
+    <div class="modal-title" id="mTitle"></div>
+    <div class="modal-client" id="mClient"></div>
+    <div class="modal-grid">
+      <div class="modal-field"><div class="field-label">Start Date</div><div class="field-value" id="mStart"></div></div>
+      <div class="modal-field"><div class="field-label">Est. Completion</div><div class="field-value" id="mEnd"></div></div>
+      <div class="modal-field"><div class="field-label">Project Value</div><div class="field-value" id="mValue"></div></div>
+      <div class="modal-field"><div class="field-label">Assigned To</div><div class="field-value" id="mAssigned"></div></div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="field-label">Completion</div>
+        <div class="field-value" id="mPercent" style="font-size:0.9rem;"></div>
+      </div>
+      <div class="modal-progress-bar"><div class="modal-progress-fill" id="mProgressFill"></div></div>
+    </div>
+    <div class="modal-notes" id="mNotes"></div>
+  </div>
+</div>
+
+<script>
+  const SHEET_ID = "2PACX-1vSuGFPcRMzeIASq3taTqm-1MimiR0T2NQQdo55pz8OuUqYIIVA0x35ndI4792mBIt7hqbBEMwpoJ1EC";
+  const SHEET_CSV_DIRECT = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=0&single=true&output=csv`;
+  const PROXIES = [
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    url => `https://thingproxy.freeboard.io/fetch/${url}`,
+  ];
+
+  const FALLBACK = [
+    {id:1,  name:"Prestige Tower — Block C",           client:"Prestige Developers",  type:"pmc",     progress:62, status:"active",  start:"Jan 2025",end:"Aug 2025",value:"₹8.5L", assigned:"Site Executive",      next:"Weekly site inspection",      notes:"Structural work complete. MEP in progress."},
+    {id:2,  name:"Sharma Residence",                   client:"Mr. & Mrs. Sharma",    type:"turnkey", progress:85, status:"active",  start:"Nov 2024",end:"May 2025",value:"₹42L",  assigned:"Office M1 + You",     next:"Final furniture delivery",     notes:"False ceiling done. Furniture delivery pending."},
+    {id:3,  name:"Patel Villa — Ground Floor",         client:"Mr. Patel",            type:"turnkey", progress:45, status:"active",  start:"Feb 2025",end:"Jul 2025",value:"₹28L",  assigned:"Brother + Office M2", next:"Tile selection approval",      notes:"Electrical rough-in complete. On schedule."},
+    {id:4,  name:"Sunrise Apartments — 3BHK",          client:"Mr. Mehta",            type:"turnkey", progress:20, status:"active",  start:"Mar 2025",end:"Sep 2025",value:"₹19L",  assigned:"Office M2",           next:"BOQ finalization",             notes:"Layout plan approved. BOQ under review."},
+    {id:5,  name:"Gupta Penthouse",                    client:"Mrs. Gupta",           type:"turnkey", progress:70, status:"hold",    start:"Dec 2024",end:"Jun 2025",value:"₹55L",  assigned:"You + Brother",       next:"Client decision on furniture", notes:"On hold 2 weeks. Custom sofa pending."},
+    {id:6,  name:"Verma Office Redesign",              client:"Verma & Sons Pvt Ltd", type:"turnkey", progress:35, status:"delayed", start:"Jan 2025",end:"May 2025",value:"₹31L",  assigned:"Brother",             next:"Vendor follow-up: woodwork",   notes:"Delayed 3 weeks. New delivery date: 20th May."},
+    {id:7,  name:"Kapoor 4BHK — Full Home",            client:"Mr. Kapoor",           type:"idc",     progress:90, status:"review",  start:"Oct 2024",end:"Apr 2025",value:"₹4.2L", assigned:"Office M1",           next:"Final design handover",        notes:"All drawings complete. Awaiting sign-off."},
+    {id:8,  name:"Singh Residence — Master Suite",     client:"Mr. Singh",            type:"idc",     progress:60, status:"active",  start:"Feb 2025",end:"May 2025",value:"₹1.8L", assigned:"Office M2",           next:"3D render presentation",       notes:"Concept approved. 3D renders in progress."},
+    {id:9,  name:"Nair Apartment — 2BHK",              client:"Ms. Nair",             type:"idc",     progress:30, status:"active",  start:"Mar 2025",end:"Jun 2025",value:"₹1.5L", assigned:"Office M1",           next:"Space planning presentation",  notes:"Site measurements taken."},
+    {id:10, name:"Bose Villa — Living Area",           client:"Dr. Bose",             type:"idc",     progress:75, status:"active",  start:"Dec 2024",end:"Apr 2025",value:"₹2.1L", assigned:"Brother",             next:"Material mood board approval", notes:"Layout finalized. Palette under review."},
+    {id:11, name:"Joshi Duplex — Full Home",           client:"Mr. Joshi",            type:"idc",     progress:15, status:"active",  start:"Apr 2025",end:"Aug 2025",value:"₹3.8L", assigned:"You",                 next:"Initial brief meeting",        notes:"Kickoff done. Site visit next week."},
+    {id:12, name:"Reddy Flat — Kitchen + Dining",      client:"Mrs. Reddy",           type:"idc",     progress:50, status:"active",  start:"Feb 2025",end:"May 2025",value:"₹1.2L", assigned:"Office M2",           next:"Kitchen layout revision",      notes:"Client requested layout change."},
+    {id:13, name:"Agarwal Penthouse — Lounge",         client:"Mr. Agarwal",          type:"idc",     progress:40, status:"active",  start:"Mar 2025",end:"Jun 2025",value:"₹1.6L", assigned:"Office M1",           next:"Mood board presentation",      notes:"Theme confirmed. Mood board underway."},
+    {id:14, name:"Desai Residence — New Construction", client:"Mr. Desai",            type:"arch",    progress:25, status:"active",  start:"Apr 2025",end:"Oct 2025",value:"₹3.5L", assigned:"You + Brother",       next:"Concept design presentation",  notes:"Site analysis complete. Concept in progress."},
+  ];
+
+  let projects = [];
+  let currentFilter = "all";
+
+  const typeLabels = {pmc:"PMC",turnkey:"Turnkey",idc:"IDC",arch:"Arch"};
+  const typeBadge  = {pmc:"badge-pmc",turnkey:"badge-turnkey",idc:"badge-idc",arch:"badge-arch"};
+  const typeColor  = {pmc:"#4c9bc9",turnkey:"#c9784c",idc:"#6fc97a",arch:"#a46cc9"};
+  const statusCfg  = {active:{cls:"dot-active",label:"On Track"},hold:{cls:"dot-hold",label:"On Hold"},review:{cls:"dot-review",label:"Under Review"},delayed:{cls:"dot-delayed",label:"Delayed"}};
+
+  function parseCSV(text) {
+    const lines = text.trim().split('\n').filter(l => l.trim());
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+    return lines.slice(1).map((line, i) => {
+      const cols = []; let inQ = false, cur = '';
+      for (const ch of line) {
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+        else { cur += ch; }
+      }
+      cols.push(cur.trim());
+      const obj = {id: i + 1};
+      headers.forEach((h, idx) => { obj[h] = (cols[idx] || '').replace(/^"|"$/g,''); });
+      obj.progress = parseInt(obj.progress) || 0;
+      return obj;
+    }).filter(r => r.name && r.name.trim());
+  }
+
+  async function fetchCSV() {
+    // Try direct first
+    try {
+      const res = await fetch(SHEET_CSV_DIRECT, { cache: 'no-store' });
+      if (res.ok) {
+        const text = await res.text();
+        if (text.includes(',')) return text;
+      }
+    } catch(e) {}
+
+    // Try each proxy in order
+    for (const makeUrl of PROXIES) {
+      try {
+        const res = await fetch(makeUrl(SHEET_CSV_DIRECT), { cache: 'no-store' });
+        if (!res.ok) continue;
+        const text = await res.text();
+        // allorigins wraps in JSON
+        if (text.trim().startsWith('{')) {
+          const json = JSON.parse(text);
+          const contents = json.contents || json.data || '';
+          if (contents.includes(',')) return contents;
+        } else if (text.includes(',')) {
+          return text;
+        }
+      } catch(e) {}
+    }
+    return null;
+  }
+
+  async function loadData() {
+    const btn = document.getElementById('refreshBtn');
+    btn.classList.add('spinning');
+    document.getElementById('lastSync').textContent = 'SYNCING...';
+
+    try {
+      const csv = await fetchCSV();
+      if (csv) {
+        const parsed = parseCSV(csv);
+        if (parsed.length > 0) {
+          projects = parsed;
+          document.getElementById('lastSync').textContent = 'SYNCED ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+        } else {
+          projects = FALLBACK;
+          document.getElementById('lastSync').textContent = 'SHEET EMPTY — showing sample data';
+        }
+      } else {
+        projects = FALLBACK;
+        document.getElementById('lastSync').textContent = 'COULD NOT REACH SHEET — showing sample data';
+      }
+    } catch(e) {
+      projects = FALLBACK;
+      document.getElementById('lastSync').textContent = 'ERROR — showing sample data';
+    }
+
+    btn.classList.remove('spinning');
+    updateStats();
+    renderTable(currentFilter);
+  }
+
+  function updateStats() {
+    const c = t => projects.filter(p => p.type === t).length;
+    document.getElementById('cTotal').textContent   = projects.length;
+    document.getElementById('cPmc').textContent     = c('pmc');
+    document.getElementById('cTurnkey').textContent = c('turnkey');
+    document.getElementById('cIdc').textContent     = c('idc');
+    document.getElementById('cArch').textContent    = c('arch');
+    document.getElementById('siteCountDot').textContent = projects.length + ' ACTIVE SITES';
+  }
+
+  function renderTable(filter) {
+    const tbody = document.getElementById('projectTable');
+    const list = filter === 'all' ? projects
+      : filter === 'active'  ? projects.filter(p => p.status === 'active')
+      : filter === 'delayed' ? projects.filter(p => p.status === 'delayed')
+      : projects.filter(p => p.type === filter);
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="state-box"><div class="icon">🔍</div><p>NO PROJECTS FOUND</p><div class="sub">try a different filter</div></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map(p => {
+      const s = statusCfg[p.status] || statusCfg.active;
+      const col = typeColor[p.type] || '#888';
+      return `<tr onclick="openModal(${p.id})">
+        <td><div class="project-name">${p.name}</div><div class="project-client">${p.client}</div></td>
+        <td><span class="type-badge ${typeBadge[p.type]||'badge-idc'}">${typeLabels[p.type]||p.type}</span></td>
+        <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${p.progress}%;background:${col};"></div></div><span class="progress-label">${p.progress}%</span></div></td>
+        <td><div class="status-dot"><span class="dot ${s.cls}"></span>${s.label}</div></td>
+        <td style="color:var(--muted);font-size:0.75rem;max-width:150px;">${p.next||'—'}</td>
+        <td><button class="action-btn" onclick="event.stopPropagation();openModal(${p.id})">View</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filterProjects(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTable(f);
+  }
+
+  function openModal(id) {
+    const p = projects.find(x => x.id === id); if (!p) return;
+    const col = typeColor[p.type]||'#888';
+    document.getElementById('mType').innerHTML = `<span class="type-badge ${typeBadge[p.type]||'badge-idc'}">${typeLabels[p.type]||p.type}</span>`;
+    document.getElementById('mTitle').textContent = p.name;
+    document.getElementById('mClient').textContent = 'Client: ' + p.client;
+    document.getElementById('mStart').textContent = p.start||'—';
+    document.getElementById('mEnd').textContent = p.end||'—';
+    document.getElementById('mValue').textContent = p.value||'—';
+    document.getElementById('mAssigned').textContent = p.assigned||'—';
+    document.getElementById('mPercent').textContent = p.progress + '%';
+    document.getElementById('mProgressFill').style.cssText = `width:${p.progress}%;background:${col};`;
+    document.getElementById('mNotes').textContent = p.notes||'No notes added.';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal(e) { if(e.target===document.getElementById('modalOverlay')) closeModalDirect(); }
+  function closeModalDirect() { document.getElementById('modalOverlay').classList.remove('open'); }
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeModalDirect(); });
+
+  const now = new Date();
+  const ds = now.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).toUpperCase();
+  document.getElementById('dateLabel').textContent = ds;
+  document.getElementById('bottomDate').textContent = ds;
+  loadData();
+</script>
+</body>
+</html>
